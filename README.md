@@ -1,76 +1,43 @@
-# Linux Persistence Detection Rules
+# detection-rules
 
-Detection rules for the most common Linux persistence techniques used by attackers post-compromise. Each technique includes rules in four formats — Sigma, auditd, osquery, and Falco — plus a reproducible test script and a false-positive guide.
+Detection rules I write for Linux persistence techniques. I run Wazuh and auditd on production servers as a sysadmin, and this repo is where I work out how to actually catch the things attackers do after they get a shell.
 
-Built as a focused, complete reference rather than a sprawling collection: pick a technique, get production-ready coverage in the format your stack uses, and a test you can run in a lab to prove the rule fires.
+Each technique gets one markdown file with everything in it: what the technique is, a Sigma rule, auditd rules, an osquery query, a Falco rule, a small bash script to trigger it in a lab, and notes on what will false positive.
 
-## Why these twelve techniques
+I picked these twelve because they keep showing up in Linux incident reports. I am adding them one at a time as I finish testing each one.
 
-These are the techniques that show up in real Linux intrusion reports and red team engagements over and over again. They span every major persistence sub-tactic in MITRE ATT&CK and they cover both the "low effort but high frequency" tradecraft (authorized_keys, cron) and the "rarer but harder to detect" tradecraft (PAM modules, kernel rootkits).
+## Techniques
 
-If you can detect all twelve confidently, you have meaningful Linux persistence coverage.
-
-## Coverage matrix
-
-| # | Technique | MITRE ATT&CK | Detection difficulty |
+| # | Technique | ATT&CK | Status |
 |---|---|---|---|
-| 01 | SSH authorized_keys injection | T1098.004 | Easy |
-| 02 | SSHD config tampering | T1556 | Medium |
-| 03 | Cron and systemd timer abuse | T1053.003 / T1053.006 | Easy |
-| 04 | Systemd service persistence | T1543.002 | Medium |
-| 05 | Web shell drop | T1505.003 | Medium |
-| 06 | Reverse shell callback | T1059.004 / T1071 | Hard |
-| 07 | PAM module backdoor | T1556.003 | Hard |
-| 08 | LD_PRELOAD library injection | T1574.006 | Medium |
-| 09 | Loadable kernel module rootkit | T1547.006 | Hard |
-| 10 | Shell rc / profile injection | T1546.004 | Easy |
-| 11 | Setuid binary drop | T1548.001 | Easy |
-| 12 | Sudoers drop-in privilege grant | T1548.003 | Easy |
+| 01 | [SSH authorized_keys injection](linux-persistence/01-ssh-authorized-keys.md) | T1098.004 | done |
+| 02 | sshd config tampering | T1556 | writing |
+| 03 | Cron and systemd timer abuse | T1053.003 / .006 | writing |
+| 04 | Systemd service persistence | T1543.002 | writing |
+| 05 | Web shell drop | T1505.003 | writing |
+| 06 | Reverse shell callback | T1059.004 / T1071 | writing |
+| 07 | PAM module backdoor | T1556.003 | writing |
+| 08 | LD_PRELOAD injection | T1574.006 | writing |
+| 09 | Kernel module rootkit | T1547.006 | writing |
+| 10 | Shell rc / profile injection | T1546.004 | writing |
+| 11 | Setuid binary drop | T1548.001 | writing |
+| 12 | Sudoers drop-in | T1548.003 | writing |
 
-## Repository layout
+## Using a rule
 
-```
-linux-persistence/
-  README.md                              Coverage matrix, philosophy, links to writeups
-  01-ssh-authorized-keys.md              Each .md is a self-contained writeup containing:
-  02-sshd-config-tamper.md                 - technique explanation + MITRE mapping
-  03-cron-systemd-timer.md                 - Sigma rule (vendor-agnostic)
-  04-systemd-service-persistence.md        - auditd rules (host-level)
-  05-web-shell-drop.md                     - osquery query (fleet-level)
-  06-reverse-shell-callback.md             - Falco rule (runtime / containers)
-  07-pam-module-backdoor.md                - lab test trigger (benign)
-  08-ld-preload-injection.md               - false-positive guide + tuning
-  09-kernel-module-rootkit.md
-  10-shell-rc-injection.md
-  11-setuid-binary-drop.md
-  12-sudoers-dropin.md
+Open the technique file and copy the block for whatever you run:
 
-tests/
-  lab-setup.md                           Reproducible Vagrant / Docker lab to test all rules
-```
+- Sigma: convert with sigma-cli or pySigma for your SIEM
+- auditd: drop the lines into a file under `/etc/audit/rules.d/` and run `augenrules --load`
+- osquery: add the query to your schedule, 300 seconds is a sane default
+- Falco: append the rule to your local rules file
 
-## How to use
+Then run the lab trigger from the same file on a throwaway VM and check the alert shows up before you trust it in prod. Read the false positives section, every one of these rules has cases where it fires on normal admin work.
 
-1. **Open the technique writeup** — each `.md` file is self-contained: explanation, all four detection formats, lab test, and tuning notes.
-2. **Pick the format your stack supports**:
-   - SIEM with sigmac / Chainsaw / Hayabusa: copy the `Sigma rule` block
-   - Standalone Linux host with auditd: drop the `auditd rules` block into `/etc/audit/rules.d/`
-   - osquery fleet (Kolide, Fleet, etc.): import the `osquery query` as a scheduled query
-   - Falco / Sysdig: include the `Falco rule` block
-3. **Validate in a lab** before deploying. Each writeup has a `Lab test trigger` block — run it against a clean VM (see `tests/lab-setup.md`) and confirm the rule fires.
-4. **Read the `False positives and tuning` section** — every rule has legit edge cases. Tune before alerting in prod.
+## Lab
 
-## Testing methodology
-
-Each writeup ships a `Lab test trigger` script that simulates the technique with a benign payload (no real malware, no exfiltration) and cleans up after itself, plus the expected detection signal for each format. Run them on a throwaway VM built from `tests/lab-setup.md`, never on a production host.
-
-## Conventions
-
-- Sigma rules use `level: high` for unambiguous indicators and `level: medium` for behavioral patterns that need tuning.
-- auditd rules use unique `-k <key>` tags so alerts can be routed by key.
-- osquery queries are designed for `interval: 300` (5 min) by default; tune per environment.
-- Falco rules include MITRE tags for ATT&CK navigator integration.
+`tests/lab-setup.md` has the VM setup I use for testing (coming with technique 02).
 
 ## License
 
-MIT. Use, modify, deploy. No warranty — test in a lab before production.
+MIT
