@@ -1,6 +1,6 @@
 # Linux Persistence — Detection Rules
 
-Twelve persistence techniques mapped to MITRE ATT&CK, each with multi-platform detection content and a validated test trigger. Each technique is a single self-contained writeup — Sigma rule, auditd rules, osquery query, Falco rule, lab test trigger, and false-positive guidance all in one file.
+Twelve persistence techniques mapped to MITRE ATT&CK, each with multi-platform detection content and a benign test trigger. Each technique is a single self-contained writeup — Sigma rule, auditd rules, osquery query, Falco rule, lab test trigger, and false-positive guidance all in one file.
 
 ## MITRE ATT&CK coverage
 
@@ -40,4 +40,4 @@ Different organizations land in different parts of this stack. The four-format a
 
 ## Testing
 
-Each writeup includes a `test.sh` snippet that triggers the technique using benign payloads. Run from a clean lab VM (see [`../tests/lab-setup.md`](../tests/lab-setup.md)), never in production.
+Each writeup includes a `Lab test trigger` script that triggers the technique using benign payloads. Run from a clean lab VM (see [`../tests/lab-setup.md`](../tests/lab-setup.md)), never in production.

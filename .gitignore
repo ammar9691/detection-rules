@@ -21,3 +21,6 @@ Thumbs.db
 *.log
 test-output/
 .test-cache/
+
+# Local tooling config
+.claude/

@@ -57,12 +57,12 @@ tests/
    - Standalone Linux host with auditd: drop the `auditd rules` block into `/etc/audit/rules.d/`
    - osquery fleet (Kolide, Fleet, etc.): import the `osquery query` as a scheduled query
    - Falco / Sysdig: include the `Falco rule` block
-3. **Validate in a lab** before deploying. Each writeup has a `test.sh` block — run it against a clean VM (see `tests/lab-setup.md`) and confirm the rule fires.
+3. **Validate in a lab** before deploying. Each writeup has a `Lab test trigger` block — run it against a clean VM (see `tests/lab-setup.md`) and confirm the rule fires.
 4. **Read the `False positives and tuning` section** — every rule has legit edge cases. Tune before alerting in prod.
 
 ## Testing methodology
 
-Every rule has been validated against a clean AlmaLinux 9 host with auditd and Falco running. The `test.sh` snippets simulate the technique using benign payloads (no actual malware, no exfiltration). The expected detection signal is documented in each writeup.
+Each writeup ships a `Lab test trigger` script that simulates the technique with a benign payload (no real malware, no exfiltration) and cleans up after itself, plus the expected detection signal for each format. Run them on a throwaway VM built from `tests/lab-setup.md`, never on a production host.
 
 ## Conventions
 
